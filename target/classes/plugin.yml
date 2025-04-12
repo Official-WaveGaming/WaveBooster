@@ -1,0 +1,4 @@
+name: WaveBooster
+version: '1.0'
+main: wavebooster.WaveBooster
+api-version: '1.18'
