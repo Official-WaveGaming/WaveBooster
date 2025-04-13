@@ -1,0 +1,48 @@
+# WaveBooster Configuration
+
+# Database configuration
+database:
+    host: localhost
+    port: 3306
+    database: wavebooster
+    username: root
+    password: password
+    # You can use HikariCP for better performance
+    # hikari:
+    #   maximumPoolSize: 10
+    #   minimumIdle: 5
+    #   connectionTimeout: 30000
+
+# GUI settings
+gui:
+    player-title: "&8Your Boosters"
+    admin-title: "&8Admin Boosters"
+    admin-player-title: "&8Admin: %player%'s Boosters"
+    admin-give-title: "&8Give Booster to %player%"
+    admin-global-title: "&8Admin: Global Boosters"
+    admin-global-select-title: "&8Activate Global Booster"
+
+# Default booster durations (in seconds)
+durations:
+    personal:
+        xp:
+            2x: 3600  # 1 hour
+            3x: 1800  # 30 minutes
+        drop:
+            2x: 3600  # 1 hour
+            3x: 1800  # 30 minutes
+    global:
+        xp:
+            2x: 1800  # 30 minutes
+            3x: 900   # 15 minutes
+        drop:
+            2x: 1800  # 30 minutes
+            3x: 900   # 15 minutes
+
+# Permission settings
+permissions:
+    admin: "wavebooster.admin"
+    use: "wavebooster.use"
+
+# Update tablist interval (in ticks, 20 = 1 second)
+tablist-update-interval: 20

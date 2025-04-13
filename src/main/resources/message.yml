@@ -1,0 +1,41 @@
+# WaveBooster Messages Configuration
+
+booster:
+    # Booster types
+    global: "Global"
+    personal: "Personal"
+
+    # Booster activation/expiration messages
+    received: "&aYou received a %type% Booster (%multiplier%x) - %global%!"
+    personal-activated: "&aYou activated a %type% Booster (%multiplier%x) for %time%!"
+    global-activated: "&6%player% activated a Global %type% Booster (%multiplier%x) for %time%!"
+    personal-expired: "&cYour %type% Booster (%multiplier%x) has expired!"
+    global-expired: "&cThe Global %type% Booster (%multiplier%x) has expired!"
+    global-cancelled: "&c%player% cancelled a Global Booster!"
+
+    # Multiplier effect messages
+    drops-boosted: "&aYour Drop Booster (%multiplier%x) gave you extra items!"
+    xp-boosted: "&aYour XP Booster (%multiplier%x) gave you extra experience!"
+
+# GUI messages
+gui:
+    booster-name: "&a%type% Booster &7(%multiplier%x)"
+    booster-lore:
+        - "&7Multiplier: &e%multiplier%x"
+        - "&7Duration: &e%duration%"
+        - "&7Type: &e%type%"
+
+    active-booster-name: "&a%type% Booster &7(%multiplier%x)"
+    active-booster-lore:
+        - "&7Multiplier: &e%multiplier%x"
+        - "&7Remaining: &e%remaining%"
+        - "&7Activated by: &e%activator%"
+
+# Tablist messages
+tablist:
+    header: "&6&lWave&e&lBooster"
+    no-global-boosters: "&cNo global boosters active"
+    global-boosters: "&6&lGlobal Boosters:"
+    no-personal-boosters: "&cNo personal boosters active"
+    personal-boosters: "&a&lYour Boosters:"
+    booster-format: "&a%type% &7(%multiplier%x) - &e%time%"
