@@ -1,0 +1,11 @@
+wavebooster/models/GlobalBooster.class
+wavebooster/database/SQLManager.class
+wavebooster/utils/NBTUtils.class
+wavebooster/database/DatabaseConnector.class
+wavebooster/models/BoosterType.class
+wavebooster/managers/BoosterManager.class
+wavebooster/models/PersonalBooster.class
+wavebooster/gui/AdminBoosterGUI.class
+wavebooster/managers/TablistManager.class
+wavebooster/models/Booster.class
+wavebooster/api/BoosterAPI.class

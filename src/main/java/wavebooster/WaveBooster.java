@@ -30,6 +30,7 @@ public final class WaveBooster extends JavaPlugin {
 	private BoosterManager boosterManager;
 	private TablistManager tablistManager;
 	private BoosterAPI boosterAPI;
+	private NBTUtils nbtUtils;
 
 	@Override
 	public void onEnable() {
