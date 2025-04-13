@@ -115,7 +115,6 @@ public class AdminBoosterGUI implements Listener {
 			} else {
 				material = Material.CHEST;
 			}
-
 			ItemStack item = new ItemStack(material);
 			ItemMeta meta = item.getItemMeta();
 
@@ -184,7 +183,6 @@ public class AdminBoosterGUI implements Listener {
 
 		admin.openInventory(inventory);
 	}
-
 	public void openGiveBoosterGUI(Player admin, UUID targetPlayerId) {
 		Player targetPlayer = Bukkit.getPlayer(targetPlayerId);
 		if (targetPlayer == null) {
@@ -253,7 +251,6 @@ public class AdminBoosterGUI implements Listener {
 
 		admin.openInventory(inventory);
 	}
-
 	public void openGlobalBoostersGUI(Player admin) {
 		Inventory inventory = Bukkit.createInventory(null, 54, globalGuiTitle);
 
@@ -335,6 +332,48 @@ public class AdminBoosterGUI implements Listener {
 		admin.openInventory(inventory);
 	}
 
+	// Methode zum Öffnen des Global Booster Selection GUI
+	public void openGlobalBoosterSelectionGUI(Player admin) {
+		String title = ChatColor.translateAlternateColorCodes('&',
+			plugin.getConfig().getString("gui.admin-global-select-title", "&8Activate Global Booster"));
+		Inventory inventory = Bukkit.createInventory(null, 36, title);
+
+		// XP Boosters
+		ItemStack xp2x = createBoosterItem(Material.EXPERIENCE_BOTTLE, "&aXP Booster &7(2x)",
+			BoosterType.XP, 2, 1800, true);
+		ItemStack xp3x = createBoosterItem(Material.EXPERIENCE_BOTTLE, "&aXP Booster &7(3x)",
+			BoosterType.XP, 3, 1800, true);
+
+		// Drop Boosters
+		ItemStack drop2x = createBoosterItem(Material.CHEST, "&aDrop Booster &7(2x)",
+			BoosterType.DROP, 2, 1800, true);
+		ItemStack drop3x = createBoosterItem(Material.CHEST, "&aDrop Booster &7(3x)",
+			BoosterType.DROP, 3, 1800, true);
+
+		// Add booster items
+		inventory.setItem(11, xp2x);
+		inventory.setItem(12, xp3x);
+		inventory.setItem(14, drop2x);
+		inventory.setItem(15, drop3x);
+
+		// Back button
+		ItemStack backButton = new ItemStack(Material.ARROW);
+		ItemMeta backMeta = backButton.getItemMeta();
+		backMeta.setDisplayName(ChatColor.YELLOW + "Back to Global Boosters");
+		backButton.setItemMeta(backMeta);
+
+		inventory.setItem(27, backButton);
+
+		// Close button
+		ItemStack closeButton = new ItemStack(Material.BARRIER);
+		ItemMeta closeMeta = closeButton.getItemMeta();
+		closeMeta.setDisplayName(ChatColor.RED + "Close");
+		closeButton.setItemMeta(closeMeta);
+
+		inventory.setItem(35, closeButton);
+
+		admin.openInventory(inventory);
+	}
 	@EventHandler
 	public void onInventoryClick(InventoryClickEvent event) {
 		if (!(event.getWhoClicked() instanceof Player)) return;
@@ -357,7 +396,236 @@ public class AdminBoosterGUI implements Listener {
 				plugin.getServer().getScheduler().runTaskLater(plugin, () -> openPlayerGUI(player, playerId), 1L);
 			}
 			// Global boosters button
-			else if (click
+			else if (clickedItem.getType() == Material.NETHER_STAR) {
+				player.closeInventory();
+				plugin.getServer().getScheduler().runTaskLater(plugin, () -> openGlobalBoostersGUI(player), 1L);
+			}
+			// Close button
+			else if (clickedItem.getType() == Material.BARRIER) {
+				player.closeInventory();
+			}
+		}
+		// Player boosters GUI
+		else if (title.startsWith(ChatColor.translateAlternateColorCodes('&',
+			plugin.getConfig().getString("gui.admin-player-title", "&8Admin: ").split("%player%")[0]))) {
+			event.setCancelled(true);
+
+			ItemStack clickedItem = event.getCurrentItem();
+			if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
+
+			// Booster item (activate or remove)
+			if ((clickedItem.getType() == Material.EXPERIENCE_BOTTLE || clickedItem.getType() == Material.CHEST)
+				&& plugin.getNBTUtils().hasKey(clickedItem, "boosterId")) {
+				String boosterIdStr = plugin.getNBTUtils().getString(clickedItem, "boosterId");
+				String playerIdStr = plugin.getNBTUtils().getString(clickedItem, "playerId");
+				UUID boosterId = UUID.fromString(boosterIdStr);
+				UUID playerId = UUID.fromString(playerIdStr);
+
+				// Left click - activate
+				if (event.isLeftClick()) {
+					boolean activated = plugin.getBoosterManager().activateBooster(playerId, boosterId);
+					if (activated) {
+						player.sendMessage(ChatColor.GREEN + "Booster activated!");
+					} else {
+						player.sendMessage(ChatColor.RED + "Failed to activate booster!");
+					}
+				}
+				// Right click - remove
+				else if (event.isRightClick()) {
+					plugin.getBoosterManager().removePlayerBooster(playerId, boosterId);
+					player.sendMessage(ChatColor.GREEN + "Booster removed!");
+				}
+
+				// Refresh GUI
+				player.closeInventory();
+				plugin.getServer().getScheduler().runTaskLater(plugin, () -> openPlayerGUI(player, playerId), 1L);
+			}
+			// Give booster button
+			else if (clickedItem.getType() == Material.EMERALD && plugin.getNBTUtils().hasKey(clickedItem, "playerId")) {
+				String playerIdStr = plugin.getNBTUtils().getString(clickedItem, "playerId");
+				UUID playerId = UUID.fromString(playerIdStr);
+
+				player.closeInventory();
+				plugin.getServer().getScheduler().runTaskLater(plugin, () -> openGiveBoosterGUI(player, playerId), 1L);
+			}
+			// Back button
+			else if (clickedItem.getType() == Material.ARROW) {
+				player.closeInventory();
+				plugin.getServer().getScheduler().runTaskLater(plugin, () -> openMainGUI(player), 1L);
+			}
+			// Close button
+			else if (clickedItem.getType() == Material.BARRIER) {
+				player.closeInventory();
+			}
+		}
+		// Give booster GUI
+		else if (title.startsWith(ChatColor.translateAlternateColorCodes('&',
+			plugin.getConfig().getString("gui.admin-give-title", "&8Give Booster to ").split("%player%")[0]))) {
+			event.setCancelled(true);
+
+			ItemStack clickedItem = event.getCurrentItem();
+			if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
+
+			// Booster item
+			if ((clickedItem.getType() == Material.EXPERIENCE_BOTTLE || clickedItem.getType() == Material.CHEST)
+				&& plugin.getNBTUtils().hasKey(clickedItem, "playerId")) {
+				String playerIdStr = plugin.getNBTUtils().getString(clickedItem, "playerId");
+				UUID playerId = UUID.fromString(playerIdStr);
+
+				// Get booster properties from the item
+				BoosterType type = clickedItem.getType() == Material.EXPERIENCE_BOTTLE ? BoosterType.XP : BoosterType.DROP;
+				int multiplier = plugin.getNBTUtils().getInt(clickedItem, "multiplier");
+				long duration = plugin.getNBTUtils().getInt(clickedItem, "duration");
+				boolean isGlobal = plugin.getNBTUtils().getInt(clickedItem, "global") == 1;
+
+				// Give the booster
+				plugin.getBoosterManager().givePlayerBooster(playerId, type, multiplier, duration, isGlobal);
+				player.sendMessage(ChatColor.GREEN + "Booster given successfully!");
+
+				// Return to player GUI
+				player.closeInventory();
+				plugin.getServer().getScheduler().runTaskLater(plugin, () -> openPlayerGUI(player, playerId), 1L);
+			}
+			// Back button
+			else if (clickedItem.getType() == Material.ARROW && plugin.getNBTUtils().hasKey(clickedItem, "playerId")) {
+				String playerIdStr = plugin.getNBTUtils().getString(clickedItem, "playerId");
+				UUID playerId = UUID.fromString(playerIdStr);
+
+				player.closeInventory();
+				plugin.getServer().getScheduler().runTaskLater(plugin, () -> openPlayerGUI(player, playerId), 1L);
+			}
+			// Close button
+			else if (clickedItem.getType() == Material.BARRIER) {
+				player.closeInventory();
+			}
+		}
+		// Global boosters GUI
+		else if (title.equals(globalGuiTitle)) {
+			event.setCancelled(true);
+
+			ItemStack clickedItem = event.getCurrentItem();
+			if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
+
+			// Active global booster (cancel)
+			if ((clickedItem.getType() == Material.EXPERIENCE_BOTTLE || clickedItem.getType() == Material.CHEST)
+				&& plugin.getNBTUtils().hasKey(clickedItem, "boosterId")) {
+				String boosterIdStr = plugin.getNBTUtils().getString(clickedItem, "boosterId");
+				UUID boosterId = UUID.fromString(boosterIdStr);
+
+				// Remove from active boosters
+				plugin.getBoosterManager().removeActiveBooster(boosterId);
+				player.sendMessage(ChatColor.GREEN + "Global booster cancelled!");
+
+				// Refresh GUI
+				player.closeInventory();
+				plugin.getServer().getScheduler().runTaskLater(plugin, () -> openGlobalBoostersGUI(player), 1L);
+			}
+			// Activate global booster button
+			else if (clickedItem.getType() == Material.NETHER_STAR) {
+				// For simplicity, we'll just create a global booster selection similar to the give menu
+				player.closeInventory();
+				plugin.getServer().getScheduler().runTaskLater(plugin, () -> openGlobalBoosterSelectionGUI(player), 1L);
+			}
+			// Back button
+			else if (clickedItem.getType() == Material.ARROW) {
+				player.closeInventory();
+				plugin.getServer().getScheduler().runTaskLater(plugin, () -> openMainGUI(player), 1L);
+			}
+			// Close button
+			else if (clickedItem.getType() == Material.BARRIER) {
+				player.closeInventory();
+			}
+		}
+		// Global booster selection GUI (similar to give booster GUI)
+		else if (title.startsWith(ChatColor.translateAlternateColorCodes('&',
+			plugin.getConfig().getString("gui.admin-global-select-title", "&8Activate Global Booster")))) {
+			event.setCancelled(true);
+
+			ItemStack clickedItem = event.getCurrentItem();
+			if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
+
+			// Booster item
+			if ((clickedItem.getType() == Material.EXPERIENCE_BOTTLE || clickedItem.getType() == Material.CHEST)) {
+				// Get booster properties from the item
+				BoosterType type = clickedItem.getType() == Material.EXPERIENCE_BOTTLE ? BoosterType.XP : BoosterType.DROP;
+				int multiplier = plugin.getNBTUtils().getInt(clickedItem, "multiplier");
+				long duration = plugin.getNBTUtils().getInt(clickedItem, "duration");
+
+				// Create and activate global booster
+				UUID boosterId = UUID.randomUUID();
+				GlobalBooster booster = new GlobalBooster(boosterId, type, multiplier, duration, player.getUniqueId());
+				booster.activate();
+
+				plugin.getBoosterManager().addActiveBooster(booster);
+				plugin.getSqlManager().saveActiveBooster(booster);
+
+				player.sendMessage(ChatColor.GREEN + "Global booster activated!");
+
+				// Broadcast to all players
+				String message = plugin.getMessagesConfig().getString("booster.global-activated")
+					.replace("%type%", type.name())
+					.replace("%multiplier%", String.valueOf(multiplier))
+					.replace("%time%", formatTime(duration))
+					.replace("%player%", player.getName());
+
+				for (Player p : Bukkit.getOnlinePlayers()) {
+					p.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+				}
+
+				// Return to global boosters GUI
+				player.closeInventory();
+				plugin.getServer().getScheduler().runTaskLater(plugin, () -> openGlobalBoostersGUI(player), 1L);
+			}
+			// Back button
+			else if (clickedItem.getType() == Material.ARROW) {
+				player.closeInventory();
+				plugin.getServer().getScheduler().runTaskLater(plugin, () -> openGlobalBoostersGUI(player), 1L);
+			}
+			// Close button
+			else if (clickedItem.getType() == Material.BARRIER) {
+				player.closeInventory();
+			}
+		}
+	}
+
+	// Helper method to create booster items for the give menu
+	private ItemStack createBoosterItem(Material material, String name, BoosterType type, int multiplier, long duration, boolean isGlobal) {
+		ItemStack item = new ItemStack(material);
+		ItemMeta meta = item.getItemMeta();
+
+		meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
+
+		List<String> lore = new ArrayList<>();
+		lore.add(ChatColor.GRAY + "Type: " + type.name());
+		lore.add(ChatColor.GRAY + "Multiplier: " + multiplier + "x");
+		lore.add(ChatColor.GRAY + "Duration: " + formatTime(duration));
+		lore.add(ChatColor.GRAY + "Global: " + (isGlobal ? "Yes" : "No"));
+		lore.add("");
+		lore.add(ChatColor.YELLOW + "Click to give this booster");
+
+		meta.setLore(lore);
+		item.setItemMeta(meta);
+
+		// Store booster properties
+		item = plugin.getNBTUtils().setInt(item, "multiplier", multiplier);
+		item = plugin.getNBTUtils().setInt(item, "duration", (int) duration);
+		item = plugin.getNBTUtils().setInt(item, "global", isGlobal ? 1 : 0);
+
+		return item;
+	}
+
+	// Helper method to format time (seconds) to human-readable format
+	private String formatTime(long seconds) {
+		long hours = seconds / 3600;
+		long minutes = (seconds % 3600) / 60;
+		long remainingSeconds = seconds % 60;
+
+		if (hours > 0) {
+			return String.format("%dh %dm %ds", hours, minutes, remainingSeconds);
+		} else if (minutes > 0) {
+			return String.format("%dm %ds", minutes, remainingSeconds);
+		} else {
+			return String.format("%ds", remainingSeconds);
 		}
 	}
 }

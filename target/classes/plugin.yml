@@ -1,4 +1,25 @@
 name: WaveBooster
-version: '1.0'
+version: 1.0
 main: wavebooster.WaveBooster
-api-version: '1.18'
+api-version: 1.18
+description: Booster plugin for XP and drops with MythicMobs integration
+author: YourName
+depend: [MythicMobs]
+commands:
+    boosters:
+        description: Main command to access your boosters
+        usage: /boosters [list|active|help]
+        aliases: [booster, wb]
+        permission: wavebooster.use
+    adminbooster:
+        description: Admin command to manage boosters
+        usage: /adminbooster [give|remove|global|reload|help]
+        aliases: [wadmin, waveadmin]
+        permission: wavebooster.admin
+permissions:
+    wavebooster.use:
+        description: Allows access to booster commands
+        default: true
+    wavebooster.admin:
+        description: Allows access to admin commands
+        default: op

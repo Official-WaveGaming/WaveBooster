@@ -22,7 +22,7 @@ import java.io.IOException;
 
 public final class WaveBooster extends JavaPlugin {
 
-	private static MythicBoosters instance;
+	private static WaveBooster instance;
 	private FileConfiguration config;
 	private FileConfiguration messagesConfig;
 	private DatabaseConnector databaseConnector;
@@ -115,7 +115,7 @@ public final class WaveBooster extends JavaPlugin {
 		}
 	}
 
-	public static MythicBoosters getInstance() {
+	public static WaveBooster getInstance() {
 		return instance;
 	}
 

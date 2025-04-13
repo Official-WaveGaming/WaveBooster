@@ -6,6 +6,7 @@ import wavebooster.models.BoosterType;
 import wavebooster.models.GlobalBooster;
 import wavebooster.models.PersonalBooster;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -54,7 +55,7 @@ public class BoosterManager {
 							.replace("%multiplier%", String.valueOf(booster.getMultiplier()));
 
 						for (Player player : Bukkit.getOnlinePlayers()) {
-							player.sendMessage(message);
+							player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
 						}
 					} else {
 						PersonalBooster personalBooster = (PersonalBooster) booster;
@@ -65,7 +66,7 @@ public class BoosterManager {
 								.replace("%type%", booster.getType().name())
 								.replace("%multiplier%", String.valueOf(booster.getMultiplier()));
 
-							player.sendMessage(message);
+							player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
 						}
 					}
 				}
@@ -139,7 +140,7 @@ public class BoosterManager {
 				.replace("%multiplier%", String.valueOf(multiplier))
 				.replace("%global%", isGlobal ? plugin.getMessagesConfig().getString("booster.global") : plugin.getMessagesConfig().getString("booster.personal"));
 
-			player.sendMessage(message);
+			player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
 		}
 	}
 
@@ -190,7 +191,7 @@ public class BoosterManager {
 
 				// Notify all players
 				for (Player p : Bukkit.getOnlinePlayers()) {
-					p.sendMessage(message);
+					p.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
 				}
 			} else {
 				message = plugin.getMessagesConfig().getString("booster.personal-activated")
@@ -198,7 +199,7 @@ public class BoosterManager {
 					.replace("%multiplier%", String.valueOf(booster.getMultiplier()))
 					.replace("%time%", formatTime(booster.getDuration()));
 
-				player.sendMessage(message);
+				player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
 			}
 		}
 
@@ -236,6 +237,41 @@ public class BoosterManager {
 		return activeBoosters.values().stream()
 			.filter(Booster::isGlobal)
 			.collect(Collectors.toList());
+	}
+
+	public List<Booster> getActivePersonalBoosters(UUID playerId) {
+		return activeBoosters.values().stream()
+			.filter(b -> !b.isGlobal() && ((PersonalBooster) b).getPlayerId().equals(playerId))
+			.collect(Collectors.toList());
+	}
+
+	public Map<UUID, Booster> getActiveBoosters() {
+		return activeBoosters;
+	}
+
+	public boolean removeActiveBooster(UUID boosterId) {
+		Booster booster = activeBoosters.remove(boosterId);
+		if (booster != null) {
+			plugin.getSqlManager().removeActiveBooster(boosterId);
+			return true;
+		}
+		return false;
+	}
+
+	public void addActiveBooster(Booster booster) {
+		activeBoosters.put(booster.getId(), booster);
+	}
+
+	public void createAndActivateGlobalBooster(UUID activatorId, BoosterType type, int multiplier, long duration) {
+		UUID boosterId = UUID.randomUUID();
+		GlobalBooster booster = new GlobalBooster(boosterId, type, multiplier, duration, activatorId);
+		booster.activate();
+
+		activeBoosters.put(boosterId, booster);
+		plugin.getSqlManager().saveActiveBooster(booster);
+
+		// Update tablist
+		plugin.getTablistManager().updateTablist();
 	}
 
 	// Helper method to format time (seconds) to human-readable format
